@@ -463,8 +463,8 @@
             <h2>管理员后台</h2>
             
             <div class="admin-tabs">
-                <div class="admin-tab active" onclick="openAdminTab(event, 'admin-contests')">比赛申请 (0)</div>
-                <div class="admin-tab" onclick="openAdminTab(event, 'admin-problems')">单题申请 (0)</div>
+                <div class="admin-tab active" onclick="openAdminTab(event, 'admin-contests')">比赛申请 (<span id="contest-count">0</span>)</div>
+                <div class="admin-tab" onclick="openAdminTab(event, 'admin-problems')">单题申请 (<span id="problem-count">0</span>)</div>
             </div>
             
             <div id="admin-contests" class="request-list">
@@ -507,16 +507,16 @@
 
     <script>
         // 存储数据
-        let contestRequests = JSON.parse(localStorage.getItem('contestRequests')) || [];
-        let problemRequests = JSON.parse(localStorage.getItem('problemRequests')) || [];
-        let results = JSON.parse(localStorage.getItem('results')) || [];
+        let contestRequests = [];
+        let problemRequests = [];
+        let results = [];
         let currentDetailId = null;
         let currentDetailType = null;
         
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function() {
+            loadAllData();
             updateProblemInputs();
-            updateRequestCounts();
             
             // 表单提交事件
             document.getElementById('contest-form').addEventListener('submit', function(e) {
@@ -529,7 +529,32 @@
                 submitProblem();
             });
         });
-        
+
+        // 加载所有数据
+        function loadAllData() {
+            contestRequests = JSON.parse(localStorage.getItem('contestRequests')) || [];
+            problemRequests = JSON.parse(localStorage.getItem('problemRequests')) || [];
+            results = JSON.parse(localStorage.getItem('results')) || [];
+            updateRequestCounts();
+            
+            // 如果管理员面板已显示，更新显示
+            if (document.getElementById('admin-panel').style.display === 'block') {
+                if (document.getElementById('admin-contests').style.display === 'block') {
+                    displayContestRequests();
+                } else {
+                    displayProblemRequests();
+                }
+            }
+        }
+
+        // 保存所有数据
+        function saveAllData() {
+            localStorage.setItem('contestRequests', JSON.stringify(contestRequests));
+            localStorage.setItem('problemRequests', JSON.stringify(problemRequests));
+            localStorage.setItem('results', JSON.stringify(results));
+            loadAllData(); // 重新加载确保数据同步
+        }
+
         // 切换标签页
         function openTab(evt, tabName) {
             const tabContents = document.getElementsByClassName('tab-content');
@@ -632,7 +657,6 @@
             };
             
             contestRequests.push(request);
-            localStorage.setItem('contestRequests', JSON.stringify(contestRequests));
             
             // 添加到结果列表
             results.push({
@@ -643,17 +667,11 @@
                 status: 'pending',
                 timestamp: request.timestamp
             });
-            localStorage.setItem('results', JSON.stringify(results));
             
-            updateRequestCounts();
+            saveAllData();
             alert('比赛申请提交成功！');
             document.getElementById('contest-form').reset();
             updateProblemInputs();
-            
-            // 如果是管理员已登录，更新界面
-            if (document.getElementById('admin-panel').style.display === 'block') {
-                displayContestRequests();
-            }
         }
         
         // 提交单题申请
@@ -685,7 +703,6 @@
             };
             
             problemRequests.push(request);
-            localStorage.setItem('problemRequests', JSON.stringify(problemRequests));
             
             // 添加到结果列表
             results.push({
@@ -696,16 +713,10 @@
                 status: 'pending',
                 timestamp: request.timestamp
             });
-            localStorage.setItem('results', JSON.stringify(results));
             
-            updateRequestCounts();
+            saveAllData();
             alert('单题申请提交成功！');
             document.getElementById('problem-form').reset();
-            
-            // 如果是管理员已登录，更新界面
-            if (document.getElementById('admin-panel').style.display === 'block') {
-                displayProblemRequests();
-            }
         }
         
         // 更新申请数量显示
@@ -713,8 +724,8 @@
             const pendingContests = contestRequests.filter(r => r.status === 'pending').length;
             const pendingProblems = problemRequests.filter(r => r.status === 'pending').length;
             
-            document.querySelector('#admin-contests .admin-tab').textContent = `比赛申请 (${pendingContests})`;
-            document.querySelector('#admin-problems .admin-tab').textContent = `单题申请 (${pendingProblems})`;
+            document.getElementById('contest-count').textContent = pendingContests;
+            document.getElementById('problem-count').textContent = pendingProblems;
         }
         
         // 显示秘密管理员登录框
@@ -731,10 +742,10 @@
         // 秘密管理员登录
         function secretAdminLogin() {
             const password = document.getElementById('secret-admin-password').value;
-            // 这里使用简单的密码验证，实际应用中应该使用更安全的方式
             if (password === 'admin123') {
                 document.getElementById('admin-panel').style.display = 'block';
                 hideSecretAdminLogin();
+                loadAllData();
                 displayContestRequests();
             } else {
                 alert('密码错误！');
@@ -973,31 +984,28 @@
                 const index = contestRequests.findIndex(r => r.id == currentDetailId);
                 if (index !== -1) {
                     contestRequests[index].status = 'approved';
-                    localStorage.setItem('contestRequests', JSON.stringify(contestRequests));
                     
                     // 更新结果状态
-                    updateResultStatus(currentDetailId, 'approved');
+                    const resultIndex = results.findIndex(r => r.id == currentDetailId);
+                    if (resultIndex !== -1) {
+                        results[resultIndex].status = 'approved';
+                    }
                 }
             } else if (currentDetailType === 'problem') {
                 const index = problemRequests.findIndex(r => r.id == currentDetailId);
                 if (index !== -1) {
                     problemRequests[index].status = 'approved';
-                    localStorage.setItem('problemRequests', JSON.stringify(problemRequests));
                     
                     // 更新结果状态
-                    updateResultStatus(currentDetailId, 'approved');
+                    const resultIndex = results.findIndex(r => r.id == currentDetailId);
+                    if (resultIndex !== -1) {
+                        results[resultIndex].status = 'approved';
+                    }
                 }
             }
             
+            saveAllData();
             backToList();
-            updateRequestCounts();
-            
-            if (currentDetailType === 'contest') {
-                displayContestRequests();
-            } else {
-                displayProblemRequests();
-            }
-            
             alert('已通过申请');
         }
         
@@ -1007,41 +1015,29 @@
                 const index = contestRequests.findIndex(r => r.id == currentDetailId);
                 if (index !== -1) {
                     contestRequests[index].status = 'rejected';
-                    localStorage.setItem('contestRequests', JSON.stringify(contestRequests));
                     
                     // 更新结果状态
-                    updateResultStatus(currentDetailId, 'rejected');
+                    const resultIndex = results.findIndex(r => r.id == currentDetailId);
+                    if (resultIndex !== -1) {
+                        results[resultIndex].status = 'rejected';
+                    }
                 }
             } else if (currentDetailType === 'problem') {
                 const index = problemRequests.findIndex(r => r.id == currentDetailId);
                 if (index !== -1) {
                     problemRequests[index].status = 'rejected';
-                    localStorage.setItem('problemRequests', JSON.stringify(problemRequests));
                     
                     // 更新结果状态
-                    updateResultStatus(currentDetailId, 'rejected');
+                    const resultIndex = results.findIndex(r => r.id == currentDetailId);
+                    if (resultIndex !== -1) {
+                        results[resultIndex].status = 'rejected';
+                    }
                 }
             }
             
+            saveAllData();
             backToList();
-            updateRequestCounts();
-            
-            if (currentDetailType === 'contest') {
-                displayContestRequests();
-            } else {
-                displayProblemRequests();
-            }
-            
             alert('已拒绝申请');
-        }
-        
-        // 更新结果状态
-        function updateResultStatus(id, status) {
-            const index = results.findIndex(r => r.id == id);
-            if (index !== -1) {
-                results[index].status = status;
-                localStorage.setItem('results', JSON.stringify(results));
-            }
         }
         
         // 查询结果
