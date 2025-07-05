@@ -4,785 +4,552 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HACKER交流会公开赛审核系统</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #0a0a2a;
-            --secondary: #1a1a4a;
-            --accent: #00ccff;
-            --accent-dark: #0099cc;
-            --danger: #ff4d4d;
-            --success: #33cc33;
-            --warning: #ffcc00;
-            --text: #e6e6ff;
-            --text-secondary: #b3b3cc;
-            --card-bg: rgba(10, 10, 42, 0.8);
-            --border: rgba(0, 204, 255, 0.3);
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --gray-color: #95a5a6;
         }
         
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background: linear-gradient(135deg, #0a0a2a, #1a1a4a, #0a2a4a);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 10% 20%, rgba(0, 204, 255, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(0, 204, 255, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 50% 50%, rgba(0, 204, 255, 0.05) 0%, transparent 30%);
-            z-index: -1;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
         
         header {
-            text-align: center;
+            background-color: var(--dark-color);
+            color: white;
             padding: 20px 0;
+            text-align: center;
             margin-bottom: 30px;
-            border-bottom: 1px solid var(--border);
-            position: relative;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
-        .logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-        
-        .logo i {
+        h1 {
             font-size: 2.5rem;
-            color: var(--accent);
-        }
-        
-        .logo h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(to right, #00ccff, #0066ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 10px rgba(0, 204, 255, 0.3);
-        }
-        
-        .logo span {
-            color: var(--accent);
+            margin-bottom: 10px;
         }
         
         .subtitle {
             font-size: 1.2rem;
-            color: var(--text-secondary);
-            margin-top: 10px;
+            color: var(--light-color);
         }
         
         .tabs {
             display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
         }
         
-        .tab-btn {
-            background: var(--secondary);
-            border: none;
-            padding: 12px 25px;
-            margin: 0 5px;
-            border-radius: 30px;
-            color: var(--text);
-            font-size: 1rem;
+        .tab {
+            padding: 10px 20px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            transition: all 0.3s;
         }
         
-        .tab-btn::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 204, 255, 0.3), transparent);
-            transition: 0.5s;
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
         }
         
-        .tab-btn:hover::before {
-            left: 100%;
+        .tab:hover:not(.active) {
+            background-color: #ddd;
         }
         
-        .tab-btn:hover {
-            background: var(--accent-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 204, 255, 0.4);
-        }
-        
-        .tab-btn.active {
-            background: var(--accent);
-            color: var(--primary);
-            font-weight: bold;
-            box-shadow: 0 0 15px rgba(0, 204, 255, 0.7);
-        }
-        
-        .content-section {
+        .tab-content {
             display: none;
-            background: var(--card-bg);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--border);
-            backdrop-filter: blur(10px);
+            padding: 20px;
+            background-color: white;
+            border-radius: 0 5px 5px 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         
-        .content-section.active {
+        .tab-content.active {
             display: block;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        h2 {
-            font-size: 1.8rem;
-            margin-bottom: 25px;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        h2 i {
-            font-size: 1.5rem;
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-secondary);
+            margin-bottom: 5px;
+            font-weight: bold;
         }
         
-        input, textarea, select {
+        input[type="text"],
+        input[type="email"],
+        input[type="datetime-local"],
+        textarea,
+        select {
             width: 100%;
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: rgba(10, 10, 30, 0.7);
-            color: var(--text);
-            font-size: 1rem;
-            transition: all 0.3s;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
         }
         
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 10px rgba(0, 204, 255, 0.5);
+        textarea {
+            min-height: 100px;
+            resize: vertical;
         }
         
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
         }
         
         .problem-container {
-            background: rgba(20, 20, 50, 0.6);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 10px;
-            border: 1px dashed var(--border);
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
         }
         
         .problem-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
         
         .problem-title {
-            font-size: 1.2rem;
+            font-size: 18px;
             font-weight: bold;
-            color: var(--accent);
-        }
-        
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background: var(--accent);
-            color: var(--primary);
-        }
-        
-        .btn-primary:hover {
-            background: var(--accent-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 204, 255, 0.4);
-        }
-        
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-        
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-        
-        .btn-warning {
-            background: var(--warning);
-            color: var(--primary);
         }
         
         .admin-panel {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
             margin-top: 30px;
+            display: none;
         }
         
-        .admin-header {
+        .admin-panel h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .admin-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #34495e;
+            border: none;
+            color: white;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .admin-tab.active {
+            background-color: var(--primary-color);
+        }
+        
+        .request-list {
+            background-color: white;
+            border-radius: 5px;
+            padding: 15px;
+            color: #333;
+        }
+        
+        .request-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
         }
         
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        
-        .admin-table th, .admin-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .admin-table th {
-            background: rgba(0, 102, 204, 0.2);
-            color: var(--accent);
-        }
-        
-        .admin-table tr:hover {
-            background: rgba(0, 204, 255, 0.1);
-        }
-        
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
-        }
-        
-        .status-pending {
-            background: rgba(255, 204, 0, 0.2);
-            color: var(--warning);
-        }
-        
-        .status-approved {
-            background: rgba(51, 204, 51, 0.2);
-            color: var(--success);
-        }
-        
-        .status-rejected {
-            background: rgba(255, 77, 77, 0.2);
-            color: var(--danger);
-        }
-        
-        .detail-view {
-            background: var(--secondary);
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            border: 1px solid var(--border);
-        }
-        
-        .detail-item {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .detail-label {
-            font-weight: bold;
-            color: var(--accent);
-            margin-bottom: 5px;
-        }
-        
-        .detail-value {
-            color: var(--text);
-            word-wrap: break-word;
-            white-space: pre-wrap;
-        }
-        
-        .problem-description {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 10px;
-            max-height: 400px;
-            overflow-y: auto;
-            font-family: monospace;
-            white-space: pre-wrap;
-            line-height: 1.5;
-        }
-        
-        .back-btn {
-            margin-top: 20px;
-        }
-        
-        .result-item {
-            background: var(--secondary);
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-        }
-        
-        .result-title {
-            font-size: 1.3rem;
-            color: var(--accent);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .result-status {
-            margin-left: auto;
-        }
-        
-        .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .search-box input {
+        .request-info {
             flex: 1;
         }
         
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
-            background: var(--success);
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            display: none;
-            animation: slideIn 0.3s ease, fadeOut 0.5s ease 2.5s forwards;
-        }
-        
-        @keyframes slideIn {
-            from { right: -300px; opacity: 0; }
-            to { right: 20px; opacity: 1; }
-        }
-        
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-        
-        .notification.error {
-            background: var(--danger);
-        }
-        
-        .notification.warning {
-            background: var(--warning);
-            color: var(--primary);
-        }
-        
-        .admin-login {
+        .request-actions {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 300px;
+            gap: 10px;
         }
         
-        .login-form {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid var(--border);
-        }
-        
-        .difficulty-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.8rem;
+        .request-title {
             font-weight: bold;
-            margin-left: 5px;
+            margin-bottom: 5px;
         }
         
-        .difficulty-1 { background: rgba(0, 204, 0, 0.2); color: #00cc00; }
-        .difficulty-2 { background: rgba(0, 204, 102, 0.2); color: #00cc66; }
-        .difficulty-3 { background: rgba(102, 204, 0, 0.2); color: #66cc00; }
-        .difficulty-4 { background: rgba(204, 204, 0, 0.2); color: #cccc00; }
-        .difficulty-5 { background: rgba(204, 102, 0, 0.2); color: #cc6600; }
-        .difficulty-6 { background: rgba(204, 0, 0, 0.2); color: #cc0000; }
-        .difficulty-7 { background: rgba(153, 0, 204, 0.2); color: #9900cc; }
-        
-        .description-box {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-            font-family: monospace;
-            white-space: pre-wrap;
-            line-height: 1.5;
+        .request-email {
+            color: var(--primary-color);
+            margin-bottom: 5px;
         }
         
-        footer {
-            text-align: center;
-            margin-top: 50px;
+        .request-detail {
+            margin-top: 20px;
+            background-color: white;
             padding: 20px;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            border-top: 1px solid var(--border);
+            border-radius: 5px;
+            color: #333;
+            display: none;
         }
         
-        @media (max-width: 768px) {
-            .grid-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .tabs {
-                flex-direction: column;
-            }
-            
-            .tab-btn {
-                margin: 5px 0;
-            }
+        .back-btn {
+            margin-bottom: 20px;
+        }
+        
+        .result-item {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        
+        .status-pending {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .status-approved {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .status-rejected {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .clear-results {
+            margin-top: 20px;
+            text-align: right;
+        }
+        
+        /* 隐藏管理员入口样式 */
+        .admin-access {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            z-index: 1000;
+            opacity: 0.01;
+        }
+        
+        .secret-admin-login {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 1001;
+            display: none;
+        }
+        
+        .secret-admin-login input {
+            display: block;
+            margin: 10px 0;
+            padding: 8px;
+            width: 200px;
+        }
+        
+        .secret-admin-login button {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="logo">
-                <i class="fas fa-lock"></i>
-                <h1>HACKER<span>交流会</span> 公开赛审核系统</h1>
-            </div>
-            <p class="subtitle">安全、高效、专业的竞赛审核平台</p>
+            <h1>HACKER交流会公开赛审核系统</h1>
+            <p class="subtitle">公平 · 公正 · 公开</p>
         </header>
         
         <div class="tabs">
-            <button class="tab-btn active" data-target="contest-application"><i class="fas fa-trophy"></i> 比赛申请</button>
-            <button class="tab-btn" data-target="problem-application"><i class="fas fa-puzzle-piece"></i> 单题申请</button>
-            <button class="tab-btn" data-target="result-query"><i class="fas fa-search"></i> 查询结果</button>
-            <button class="tab-btn" data-target="admin-panel"><i class="fas fa-user-shield"></i> 管理员后台</button>
+            <div class="tab active" onclick="openTab(event, 'submit-contest')">提交比赛申请</div>
+            <div class="tab" onclick="openTab(event, 'submit-problem')">提交单题申请</div>
+            <div class="tab" onclick="openTab(event, 'query-result')">查询结果</div>
         </div>
         
-        <!-- 比赛申请 -->
-        <section id="contest-application" class="content-section active">
-            <h2><i class="fas fa-trophy"></i> 比赛申请</h2>
+        <div id="submit-contest" class="tab-content active">
+            <h2>比赛申请</h2>
             <form id="contest-form">
-                <div class="grid-container">
-                    <div class="form-group">
-                        <h3><i class="fas fa-user"></i> 负责人信息</h3>
-                        <label for="contest-oj">OJ名称</label>
-                        <input type="text" id="contest-oj" required>
-                        
-                        <label for="contest-uid">UID</label>
-                        <input type="text" id="contest-uid" required>
-                        
-                        <label for="contest-email">邮箱</label>
-                        <input type="email" id="contest-email" required>
-                        
-                        <label for="contest-experience">获奖经历</label>
-                        <textarea id="contest-experience" rows="3" required></textarea>
-                    </div>
+                <div class="form-group">
+                    <h3>负责人信息</h3>
+                    <label for="contest-oj">OJ名字</label>
+                    <input type="text" id="contest-oj" required>
                     
-                    <div class="form-group">
-                        <h3><i class="fas fa-info-circle"></i> 比赛信息</h3>
-                        <label for="contest-name">比赛昵称</label>
-                        <input type="text" id="contest-name" required>
-                        
-                        <label for="contest-description">比赛描述</label>
-                        <textarea id="contest-description" rows="3" required></textarea>
-                        
-                        <label for="contest-start">开始时间</label>
-                        <input type="datetime-local" id="contest-start" required>
-                        
-                        <label for="contest-end">结束时间</label>
-                        <input type="datetime-local" id="contest-end" required>
-                    </div>
+                    <label for="contest-uid">UID</label>
+                    <input type="text" id="contest-uid" required>
+                    
+                    <label for="contest-email">邮箱</label>
+                    <input type="email" id="contest-email" required>
+                    
+                    <label for="contest-awards">获奖经历</label>
+                    <textarea id="contest-awards" required></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <h3><i class="fas fa-tasks"></i> 题目信息</h3>
-                    <label for="problem-count">题目数量</label>
-                    <input type="number" id="problem-count" min="1" max="20" value="1" required>
+                    <h3>比赛信息</h3>
+                    <label for="contest-name">比赛昵称</label>
+                    <input type="text" id="contest-name" required>
                     
-                    <div id="problem-container">
-                        <!-- 动态生成的题目区域 -->
+                    <label for="contest-info">比赛信息</label>
+                    <textarea id="contest-info" required></textarea>
+                    
+                    <label for="contest-start">开始时间</label>
+                    <input type="datetime-local" id="contest-start" required>
+                    
+                    <label for="contest-end">结束时间</label>
+                    <input type="datetime-local" id="contest-end" required>
+                </div>
+                
+                <div class="form-group">
+                    <h3>题目信息</h3>
+                    <label for="contest-problem-count">题目数量</label>
+                    <input type="number" id="contest-problem-count" min="1" value="1" required onchange="updateProblemInputs()">
+                    
+                    <div id="contest-problems-container">
+                        <!-- 动态生成的题目输入框会放在这里 -->
                     </div>
                 </div>
                 
-                <div class="form-group" style="text-align: center; margin-top: 30px;">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> 提交申请</button>
-                </div>
+                <button type="submit" class="btn">提交申请</button>
             </form>
-        </section>
+        </div>
         
-        <!-- 单题申请 -->
-        <section id="problem-application" class="content-section">
-            <h2><i class="fas fa-puzzle-piece"></i> 单题申请</h2>
+        <div id="submit-problem" class="tab-content">
+            <h2>单题申请</h2>
             <form id="problem-form">
-                <div class="grid-container">
-                    <div class="form-group">
-                        <h3><i class="fas fa-user"></i> 负责人信息</h3>
-                        <label for="problem-oj">OJ名称</label>
-                        <input type="text" id="problem-oj" required>
-                        
-                        <label for="problem-uid">UID</label>
-                        <input type="text" id="problem-uid" required>
-                        
-                        <label for="problem-email">邮箱</label>
-                        <input type="email" id="problem-email" required>
-                        
-                        <label for="problem-experience">获奖经历</label>
-                        <textarea id="problem-experience" rows="3" required></textarea>
-                    </div>
+                <div class="form-group">
+                    <h3>负责人信息</h3>
+                    <label for="problem-oj">OJ名字</label>
+                    <input type="text" id="problem-oj" required>
                     
-                    <div class="form-group">
-                        <h3><i class="fas fa-info-circle"></i> 题目信息</h3>
-                        <label for="problem-title">题目标题</label>
-                        <input type="text" id="problem-title" required>
-                        
-                        <label for="problem-author">出题人</label>
-                        <input type="text" id="problem-author" required>
-                        
-                        <label for="problem-difficulty">难度</label>
-                        <select id="problem-difficulty" required>
-                            <option value="入门">入门</option>
-                            <option value="普及">普及</option>
-                            <option value="普及/提高-">普及/提高-</option>
-                            <option value="普及+/提高">普及+/提高</option>
-                            <option value="提高+/省选-">提高+/省选-</option>
-                            <option value="省选/NOI-">省选/NOI-</option>
-                            <option value="NOI/NOI+/CTSC">NOI/NOI+/CTSC</option>
-                        </select>
-                        
-                        <label for="problem-description">题目描述</label>
-                        <textarea id="problem-description" rows="5" required>题目描述内容...</textarea>
-                        
-                        <label for="problem-data">数据包</label>
-                        <input type="file" id="problem-data" required>
-                    </div>
+                    <label for="problem-uid">UID</label>
+                    <input type="text" id="problem-uid" required>
+                    
+                    <label for="problem-email">邮箱</label>
+                    <input type="email" id="problem-email" required>
+                    
+                    <label for="problem-awards">获奖经历</label>
+                    <textarea id="problem-awards" required></textarea>
                 </div>
                 
-                <div class="form-group" style="text-align: center; margin-top: 30px;">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> 提交申请</button>
+                <div class="form-group">
+                    <h3>题目信息</h3>
+                    <label for="problem-title">题目标题</label>
+                    <input type="text" id="problem-title" required>
+                    
+                    <label for="problem-author">出题人</label>
+                    <input type="text" id="problem-author" required>
+                    
+                    <label for="problem-difficulty">难度</label>
+                    <select id="problem-difficulty" required>
+                        <option value="入门">入门</option>
+                        <option value="普及">普及</option>
+                        <option value="普及/提高-">普及/提高-</option>
+                        <option value="普及+/提高">普及+/提高</option>
+                        <option value="提高+/省选-">提高+/省选-</option>
+                        <option value="省选/NOI-">省选/NOI-</option>
+                        <option value="NOI/NOI+/CTSC">NOI/NOI+/CTSC</option>
+                    </select>
+                    
+                    <label for="problem-description">题目描述</label>
+                    <textarea id="problem-description" required></textarea>
+                    
+                    <label for="problem-data">数据包 (请上传zip文件)</label>
+                    <input type="file" id="problem-data" accept=".zip" required>
                 </div>
+                
+                <button type="submit" class="btn">提交申请</button>
             </form>
-        </section>
+        </div>
         
-        <!-- 查询结果 -->
-        <section id="result-query" class="content-section">
-            <h2><i class="fas fa-search"></i> 查询结果</h2>
-            
-            <div class="search-box">
-                <input type="email" id="search-email" placeholder="请输入您的邮箱查询申请结果">
-                <button class="btn btn-primary" id="search-btn"><i class="fas fa-search"></i> 查询</button>
+        <div id="query-result" class="tab-content">
+            <h2>查询结果</h2>
+            <div class="form-group">
+                <label for="query-email">请输入您的邮箱</label>
+                <input type="email" id="query-email" required>
+                <button class="btn" onclick="queryResults()">查询</button>
             </div>
             
-            <div id="search-results">
-                <!-- 查询结果将显示在这里 -->
+            <div id="results-container">
+                <!-- 查询结果会显示在这里 -->
             </div>
-        </section>
+            
+            <div class="clear-results">
+                <button class="btn btn-danger" onclick="clearResults()">清除查询结果</button>
+            </div>
+        </div>
         
-        <!-- 管理员后台 -->
-        <section id="admin-panel" class="content-section">
-            <h2><i class="fas fa-user-shield"></i> 管理员后台</h2>
+        <div id="admin-panel" class="admin-panel">
+            <h2>管理员后台</h2>
             
-            <div id="admin-login" class="admin-login">
-                <div class="login-form">
-                    <div class="form-group">
-                        <label for="admin-password">管理员密码</label>
-                        <input type="password" id="admin-password" placeholder="请输入管理员密码">
-                    </div>
-                    <div class="form-group" style="text-align: center;">
-                        <button class="btn btn-primary" id="login-btn"><i class="fas fa-sign-in-alt"></i> 登录</button>
-                    </div>
+            <div class="admin-tabs">
+                <div class="admin-tab active" onclick="openAdminTab(event, 'admin-contests')">比赛申请 (0)</div>
+                <div class="admin-tab" onclick="openAdminTab(event, 'admin-problems')">单题申请 (0)</div>
+            </div>
+            
+            <div id="admin-contests" class="request-list">
+                <div id="contest-requests-container">
+                    <!-- 比赛申请列表会显示在这里 -->
+                    <p>暂无比赛申请</p>
                 </div>
             </div>
             
-            <div id="admin-content" style="display: none;">
-                <div class="admin-header">
-                    <div class="tabs">
-                        <button class="tab-btn active" data-admin="contest-admin"><i class="fas fa-trophy"></i> 比赛申请审核</button>
-                        <button class="tab-btn" data-admin="problem-admin"><i class="fas fa-puzzle-piece"></i> 单题申请审核</button>
-                    </div>
-                </div>
-                
-                <!-- 比赛申请审核 -->
-                <div id="contest-admin" class="admin-panel">
-                    <h3><i class="fas fa-trophy"></i> 比赛申请列表</h3>
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>比赛名称</th>
-                                <th>负责人</th>
-                                <th>邮箱</th>
-                                <th>题目数量</th>
-                                <th>申请时间</th>
-                                <th>状态</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="contest-admin-list">
-                            <!-- 动态生成的比赛申请列表 -->
-                        </tbody>
-                    </table>
-                    
-                    <div id="contest-detail" style="display: none;">
-                        <!-- 比赛申请详情 -->
-                    </div>
-                </div>
-                
-                <!-- 单题申请审核 -->
-                <div id="problem-admin" class="admin-panel" style="display: none;">
-                    <h3><i class="fas fa-puzzle-piece"></i> 单题申请列表</h3>
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>题目名称</th>
-                                <th>出题人</th>
-                                <th>邮箱</th>
-                                <th>难度</th>
-                                <th>申请时间</th>
-                                <th>状态</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="problem-admin-list">
-                            <!-- 动态生成的单题申请列表 -->
-                        </tbody>
-                    </table>
-                    
-                    <div id="problem-detail" style="display: none;">
-                        <!-- 单题申请详情 -->
-                    </div>
+            <div id="admin-problems" class="request-list" style="display: none;">
+                <div id="problem-requests-container">
+                    <!-- 单题申请列表会显示在这里 -->
+                    <p>暂无单题申请</p>
                 </div>
             </div>
-        </section>
-        
-        <footer>
-            <p>© 2023 HACKER交流会公开赛审核系统 | 安全、高效、专业</p>
-        </footer>
+            
+            <div id="admin-detail" class="request-detail">
+                <button class="btn back-btn" onclick="backToList()">返回列表</button>
+                <div id="detail-content">
+                    <!-- 详情内容会显示在这里 -->
+                </div>
+                <div class="request-actions">
+                    <button class="btn btn-secondary" onclick="approveRequest()">通过</button>
+                    <button class="btn btn-danger" onclick="rejectRequest()">拒绝</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- 隐藏的管理员入口 -->
+    <button class="admin-access" onclick="showSecretAdminLogin()"></button>
     
-    <div id="notification" class="notification"></div>
-    
+    <!-- 秘密管理员登录框 -->
+    <div id="secret-admin-login" class="secret-admin-login">
+        <h3>管理员登录</h3>
+        <input type="password" id="secret-admin-password" placeholder="请输入管理员密码">
+        <button onclick="secretAdminLogin()">登录</button>
+        <button onclick="hideSecretAdminLogin()">取消</button>
+    </div>
+
     <script>
-        // 初始化数据存储
-        if (!localStorage.getItem('contests')) {
-            localStorage.setItem('contests', JSON.stringify([]));
-        }
+        // 存储数据
+        let contestRequests = JSON.parse(localStorage.getItem('contestRequests')) || [];
+        let problemRequests = JSON.parse(localStorage.getItem('problemRequests')) || [];
+        let results = JSON.parse(localStorage.getItem('results')) || [];
+        let currentDetailId = null;
+        let currentDetailType = null;
         
-        if (!localStorage.getItem('problems')) {
-            localStorage.setItem('problems', JSON.stringify([]));
-        }
-        
-        // 显示通知
-        function showNotification(message, type = 'success') {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification.style.display = 'block';
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProblemInputs();
+            updateRequestCounts();
             
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
+            // 表单提交事件
+            document.getElementById('contest-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitContest();
+            });
+            
+            document.getElementById('problem-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitProblem();
+            });
+        });
+        
+        // 切换标签页
+        function openTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            const tabs = document.getElementsByClassName('tab');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
         }
         
-        // 标签切换功能
-        document.querySelectorAll('.tab-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                // 移除所有活动标签和内容
-                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
-                
-                // 添加活动状态
-                button.classList.add('active');
-                document.getElementById(button.dataset.target).classList.add('active');
-                
-                // 如果是管理员面板，重置视图
-                if (button.dataset.target === 'admin-panel') {
-                    document.getElementById('admin-content').style.display = 'none';
-                    document.getElementById('admin-login').style.display = 'flex';
-                }
-            });
-        });
-        
-        // 管理员标签切换
-        document.querySelectorAll('[data-admin]').forEach(button => {
-            button.addEventListener('click', () => {
-                // 移除活动状态
-                document.querySelectorAll('[data-admin]').forEach(btn => btn.classList.remove('active'));
-                
-                // 添加活动状态
-                button.classList.add('active');
-                
-                // 隐藏所有面板
-                document.getElementById('contest-admin').style.display = 'none';
-                document.getElementById('problem-admin').style.display = 'none';
-                document.getElementById('contest-detail').style.display = 'none';
-                document.getElementById('problem-detail').style.display = 'none';
-                
-                // 显示选中的面板
-                document.getElementById(button.dataset.admin).style.display = 'block';
-            });
-        });
-        
-        // 生成题目输入区域
-        function generateProblemInputs(count) {
-            const container = document.getElementById('problem-container');
+        // 更新比赛题目输入框
+        function updateProblemInputs() {
+            const count = parseInt(document.getElementById('contest-problem-count').value);
+            const container = document.getElementById('contest-problems-container');
             container.innerHTML = '';
             
             for (let i = 1; i <= count; i++) {
@@ -790,19 +557,19 @@
                 problemDiv.className = 'problem-container';
                 problemDiv.innerHTML = `
                     <div class="problem-header">
-                        <div class="problem-title">题目 #${i}</div>
+                        <div class="problem-title">题目 ${i}</div>
                     </div>
                     <div class="form-group">
-                        <label for="problem-title-${i}">题目标题</label>
-                        <input type="text" id="problem-title-${i}" required>
+                        <label for="contest-problem-title-${i}">题目标题</label>
+                        <input type="text" id="contest-problem-title-${i}" required>
                     </div>
                     <div class="form-group">
-                        <label for="problem-author-${i}">出题人</label>
-                        <input type="text" id="problem-author-${i}" required>
+                        <label for="contest-problem-author-${i}">出题人</label>
+                        <input type="text" id="contest-problem-author-${i}" required>
                     </div>
                     <div class="form-group">
-                        <label for="problem-difficulty-${i}">难度</label>
-                        <select id="problem-difficulty-${i}" required>
+                        <label for="contest-problem-difficulty-${i}">难度</label>
+                        <select id="contest-problem-difficulty-${i}" required>
                             <option value="入门">入门</option>
                             <option value="普及">普及</option>
                             <option value="普及/提高-">普及/提高-</option>
@@ -813,506 +580,530 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="problem-description-${i}">题目描述</label>
-                        <textarea id="problem-description-${i}" rows="3" required>题目描述内容...</textarea>
+                        <label for="contest-problem-description-${i}">题目描述</label>
+                        <textarea id="contest-problem-description-${i}" required></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="problem-data-${i}">数据包</label>
-                        <input type="file" id="problem-data-${i}" required>
+                        <label for="contest-problem-data-${i}">数据包 (请上传zip文件)</label>
+                        <input type="file" id="contest-problem-data-${i}" accept=".zip" required>
                     </div>
                 `;
                 container.appendChild(problemDiv);
             }
         }
         
-        // 初始生成题目输入
-        generateProblemInputs(1);
-        
-        // 题目数量变化时更新
-        document.getElementById('problem-count').addEventListener('change', function() {
-            generateProblemInputs(parseInt(this.value));
-        });
-        
-        // 比赛申请提交
-        document.getElementById('contest-form').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // 提交比赛申请
+        function submitContest() {
+            const oj = document.getElementById('contest-oj').value;
+            const uid = document.getElementById('contest-uid').value;
+            const email = document.getElementById('contest-email').value;
+            const awards = document.getElementById('contest-awards').value;
+            const name = document.getElementById('contest-name').value;
+            const info = document.getElementById('contest-info').value;
+            const start = document.getElementById('contest-start').value;
+            const end = document.getElementById('contest-end').value;
+            const count = parseInt(document.getElementById('contest-problem-count').value);
             
-            // 收集负责人信息
-            const contestData = {
-                type: 'contest',
-                oj: document.getElementById('contest-oj').value,
-                uid: document.getElementById('contest-uid').value,
-                email: document.getElementById('contest-email').value,
-                experience: document.getElementById('contest-experience').value,
-                name: document.getElementById('contest-name').value,
-                description: document.getElementById('contest-description').value,
-                start: document.getElementById('contest-start').value,
-                end: document.getElementById('contest-end').value,
-                problemCount: document.getElementById('problem-count').value,
-                problems: [],
-                status: 'pending',
-                submitted: new Date().toISOString()
-            };
-            
-            // 收集题目信息
-            const count = parseInt(contestData.problemCount);
+            const problems = [];
             for (let i = 1; i <= count; i++) {
-                contestData.problems.push({
-                    title: document.getElementById(`problem-title-${i}`).value,
-                    author: document.getElementById(`problem-author-${i}`).value,
-                    difficulty: document.getElementById(`problem-difficulty-${i}`).value,
-                    description: document.getElementById(`problem-description-${i}`).value,
-                    data: `题目${i}数据包.zip`
+                problems.push({
+                    title: document.getElementById(`contest-problem-title-${i}`).value,
+                    author: document.getElementById(`contest-problem-author-${i}`).value,
+                    difficulty: document.getElementById(`contest-problem-difficulty-${i}`).value,
+                    description: document.getElementById(`contest-problem-description-${i}`).value,
+                    data: document.getElementById(`contest-problem-data-${i}`).files[0]?.name || '未上传'
                 });
             }
             
-            // 保存到localStorage
-            const contests = JSON.parse(localStorage.getItem('contests'));
-            contests.push(contestData);
-            localStorage.setItem('contests', JSON.stringify(contests));
-            
-            // 显示成功消息
-            showNotification('比赛申请提交成功！我们将在3个工作日内处理您的申请。');
-            
-            // 重置表单
-            this.reset();
-            generateProblemInputs(1);
-        });
-        
-        // 单题申请提交
-        document.getElementById('problem-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const problemData = {
-                type: 'problem',
-                oj: document.getElementById('problem-oj').value,
-                uid: document.getElementById('problem-uid').value,
-                email: document.getElementById('problem-email').value,
-                experience: document.getElementById('problem-experience').value,
-                title: document.getElementById('problem-title').value,
-                author: document.getElementById('problem-author').value,
-                difficulty: document.getElementById('problem-difficulty').value,
-                description: document.getElementById('problem-description').value,
-                data: '题目数据包.zip',
+            const request = {
+                id: Date.now(),
+                type: 'contest',
+                oj,
+                uid,
+                email,
+                awards,
+                name,
+                info,
+                start,
+                end,
+                problems,
                 status: 'pending',
-                submitted: new Date().toISOString()
+                timestamp: new Date().toISOString()
             };
             
-            // 保存到localStorage
-            const problems = JSON.parse(localStorage.getItem('problems'));
-            problems.push(problemData);
-            localStorage.setItem('problems', JSON.stringify(problems));
+            contestRequests.push(request);
+            localStorage.setItem('contestRequests', JSON.stringify(contestRequests));
             
-            // 显示成功消息
-            showNotification('单题申请提交成功！我们将在3个工作日内处理您的申请。');
+            // 添加到结果列表
+            results.push({
+                id: request.id,
+                type: 'contest',
+                name: name,
+                email: email,
+                status: 'pending',
+                timestamp: request.timestamp
+            });
+            localStorage.setItem('results', JSON.stringify(results));
             
-            // 重置表单
-            this.reset();
-        });
+            updateRequestCounts();
+            alert('比赛申请提交成功！');
+            document.getElementById('contest-form').reset();
+            updateProblemInputs();
+            
+            // 如果是管理员已登录，更新界面
+            if (document.getElementById('admin-panel').style.display === 'block') {
+                displayContestRequests();
+            }
+        }
+        
+        // 提交单题申请
+        function submitProblem() {
+            const oj = document.getElementById('problem-oj').value;
+            const uid = document.getElementById('problem-uid').value;
+            const email = document.getElementById('problem-email').value;
+            const awards = document.getElementById('problem-awards').value;
+            const title = document.getElementById('problem-title').value;
+            const author = document.getElementById('problem-author').value;
+            const difficulty = document.getElementById('problem-difficulty').value;
+            const description = document.getElementById('problem-description').value;
+            const data = document.getElementById('problem-data').files[0]?.name || '未上传';
+            
+            const request = {
+                id: Date.now(),
+                type: 'problem',
+                oj,
+                uid,
+                email,
+                awards,
+                title,
+                author,
+                difficulty,
+                description,
+                data,
+                status: 'pending',
+                timestamp: new Date().toISOString()
+            };
+            
+            problemRequests.push(request);
+            localStorage.setItem('problemRequests', JSON.stringify(problemRequests));
+            
+            // 添加到结果列表
+            results.push({
+                id: request.id,
+                type: 'problem',
+                name: title,
+                email: email,
+                status: 'pending',
+                timestamp: request.timestamp
+            });
+            localStorage.setItem('results', JSON.stringify(results));
+            
+            updateRequestCounts();
+            alert('单题申请提交成功！');
+            document.getElementById('problem-form').reset();
+            
+            // 如果是管理员已登录，更新界面
+            if (document.getElementById('admin-panel').style.display === 'block') {
+                displayProblemRequests();
+            }
+        }
+        
+        // 更新申请数量显示
+        function updateRequestCounts() {
+            const pendingContests = contestRequests.filter(r => r.status === 'pending').length;
+            const pendingProblems = problemRequests.filter(r => r.status === 'pending').length;
+            
+            document.querySelector('#admin-contests .admin-tab').textContent = `比赛申请 (${pendingContests})`;
+            document.querySelector('#admin-problems .admin-tab').textContent = `单题申请 (${pendingProblems})`;
+        }
+        
+        // 显示秘密管理员登录框
+        function showSecretAdminLogin() {
+            document.getElementById('secret-admin-login').style.display = 'block';
+        }
+        
+        // 隐藏秘密管理员登录框
+        function hideSecretAdminLogin() {
+            document.getElementById('secret-admin-login').style.display = 'none';
+            document.getElementById('secret-admin-password').value = '';
+        }
+        
+        // 秘密管理员登录
+        function secretAdminLogin() {
+            const password = document.getElementById('secret-admin-password').value;
+            // 这里使用简单的密码验证，实际应用中应该使用更安全的方式
+            if (password === 'admin123') {
+                document.getElementById('admin-panel').style.display = 'block';
+                hideSecretAdminLogin();
+                displayContestRequests();
+            } else {
+                alert('密码错误！');
+            }
+        }
+        
+        // 切换管理员标签页
+        function openAdminTab(evt, tabName) {
+            const tabContents = document.querySelectorAll('.request-list');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].style.display = 'none';
+            }
+            
+            const tabs = document.querySelectorAll('.admin-tab');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).style.display = 'block';
+            evt.currentTarget.classList.add('active');
+            
+            if (tabName === 'admin-contests') {
+                displayContestRequests();
+            } else if (tabName === 'admin-problems') {
+                displayProblemRequests();
+            }
+        }
+        
+        // 显示比赛申请列表
+        function displayContestRequests() {
+            const container = document.getElementById('contest-requests-container');
+            const pendingRequests = contestRequests.filter(r => r.status === 'pending');
+            
+            if (pendingRequests.length === 0) {
+                container.innerHTML = '<p>暂无比赛申请</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            pendingRequests.forEach(request => {
+                const requestItem = document.createElement('div');
+                requestItem.className = 'request-item';
+                requestItem.innerHTML = `
+                    <div class="request-info">
+                        <div class="request-title">${request.name}</div>
+                        <div class="request-email">${request.email}</div>
+                        <div>开始时间: ${formatDateTime(request.start)} - 结束时间: ${formatDateTime(request.end)}</div>
+                        <div>题目数量: ${request.problems.length}</div>
+                    </div>
+                    <div class="request-actions">
+                        <button class="btn" onclick="viewRequestDetail('${request.id}', 'contest')">查看</button>
+                    </div>
+                `;
+                container.appendChild(requestItem);
+            });
+        }
+        
+        // 显示单题申请列表
+        function displayProblemRequests() {
+            const container = document.getElementById('problem-requests-container');
+            const pendingRequests = problemRequests.filter(r => r.status === 'pending');
+            
+            if (pendingRequests.length === 0) {
+                container.innerHTML = '<p>暂无单题申请</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            pendingRequests.forEach(request => {
+                const requestItem = document.createElement('div');
+                requestItem.className = 'request-item';
+                requestItem.innerHTML = `
+                    <div class="request-info">
+                        <div class="request-title">${request.title}</div>
+                        <div class="request-email">${request.email}</div>
+                        <div>难度: ${request.difficulty}</div>
+                        <div>出题人: ${request.author}</div>
+                    </div>
+                    <div class="request-actions">
+                        <button class="btn" onclick="viewRequestDetail('${request.id}', 'problem')">查看</button>
+                    </div>
+                `;
+                container.appendChild(requestItem);
+            });
+        }
+        
+        // 查看申请详情
+        function viewRequestDetail(id, type) {
+            currentDetailId = id;
+            currentDetailType = type;
+            
+            document.querySelector('.request-list').style.display = 'none';
+            document.getElementById('admin-detail').style.display = 'block';
+            
+            const detailContent = document.getElementById('detail-content');
+            
+            if (type === 'contest') {
+                const request = contestRequests.find(r => r.id == id);
+                if (!request) return;
+                
+                let problemsHtml = '';
+                request.problems.forEach((problem, index) => {
+                    problemsHtml += `
+                        <div class="problem-container">
+                            <div class="problem-header">
+                                <div class="problem-title">题目 ${index + 1}</div>
+                            </div>
+                            <div class="form-group">
+                                <label>题目标题</label>
+                                <p>${problem.title}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>出题人</label>
+                                <p>${problem.author}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>难度</label>
+                                <p>${problem.difficulty}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>题目描述</label>
+                                <pre>${problem.description}</pre>
+                            </div>
+                            <div class="form-group">
+                                <label>数据包</label>
+                                <p>${problem.data}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                detailContent.innerHTML = `
+                    <h3>负责人信息</h3>
+                    <div class="form-group">
+                        <label>OJ名字</label>
+                        <p>${request.oj}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>UID</label>
+                        <p>${request.uid}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱</label>
+                        <p>${request.email}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>获奖经历</label>
+                        <pre>${request.awards}</pre>
+                    </div>
+                    
+                    <h3>比赛信息</h3>
+                    <div class="form-group">
+                        <label>比赛昵称</label>
+                        <p>${request.name}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>比赛信息</label>
+                        <pre>${request.info}</pre>
+                    </div>
+                    <div class="form-group">
+                        <label>开始时间</label>
+                        <p>${formatDateTime(request.start)}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>结束时间</label>
+                        <p>${formatDateTime(request.end)}</p>
+                    </div>
+                    
+                    <h3>题目信息</h3>
+                    <div class="form-group">
+                        <label>题目数量</label>
+                        <p>${request.problems.length}</p>
+                    </div>
+                    
+                    ${problemsHtml}
+                `;
+            } else if (type === 'problem') {
+                const request = problemRequests.find(r => r.id == id);
+                if (!request) return;
+                
+                detailContent.innerHTML = `
+                    <h3>负责人信息</h3>
+                    <div class="form-group">
+                        <label>OJ名字</label>
+                        <p>${request.oj}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>UID</label>
+                        <p>${request.uid}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱</label>
+                        <p>${request.email}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>获奖经历</label>
+                        <pre>${request.awards}</pre>
+                    </div>
+                    
+                    <h3>题目信息</h3>
+                    <div class="form-group">
+                        <label>题目标题</label>
+                        <p>${request.title}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>出题人</label>
+                        <p>${request.author}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>难度</label>
+                        <p>${request.difficulty}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>题目描述</label>
+                        <pre>${request.description}</pre>
+                    </div>
+                    <div class="form-group">
+                        <label>数据包</label>
+                        <p>${request.data}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 返回列表
+        function backToList() {
+            document.getElementById('admin-detail').style.display = 'none';
+            document.querySelector('.request-list[style="display: block;"]').style.display = 'block';
+        }
+        
+        // 通过申请
+        function approveRequest() {
+            if (currentDetailType === 'contest') {
+                const index = contestRequests.findIndex(r => r.id == currentDetailId);
+                if (index !== -1) {
+                    contestRequests[index].status = 'approved';
+                    localStorage.setItem('contestRequests', JSON.stringify(contestRequests));
+                    
+                    // 更新结果状态
+                    updateResultStatus(currentDetailId, 'approved');
+                }
+            } else if (currentDetailType === 'problem') {
+                const index = problemRequests.findIndex(r => r.id == currentDetailId);
+                if (index !== -1) {
+                    problemRequests[index].status = 'approved';
+                    localStorage.setItem('problemRequests', JSON.stringify(problemRequests));
+                    
+                    // 更新结果状态
+                    updateResultStatus(currentDetailId, 'approved');
+                }
+            }
+            
+            backToList();
+            updateRequestCounts();
+            
+            if (currentDetailType === 'contest') {
+                displayContestRequests();
+            } else {
+                displayProblemRequests();
+            }
+            
+            alert('已通过申请');
+        }
+        
+        // 拒绝申请
+        function rejectRequest() {
+            if (currentDetailType === 'contest') {
+                const index = contestRequests.findIndex(r => r.id == currentDetailId);
+                if (index !== -1) {
+                    contestRequests[index].status = 'rejected';
+                    localStorage.setItem('contestRequests', JSON.stringify(contestRequests));
+                    
+                    // 更新结果状态
+                    updateResultStatus(currentDetailId, 'rejected');
+                }
+            } else if (currentDetailType === 'problem') {
+                const index = problemRequests.findIndex(r => r.id == currentDetailId);
+                if (index !== -1) {
+                    problemRequests[index].status = 'rejected';
+                    localStorage.setItem('problemRequests', JSON.stringify(problemRequests));
+                    
+                    // 更新结果状态
+                    updateResultStatus(currentDetailId, 'rejected');
+                }
+            }
+            
+            backToList();
+            updateRequestCounts();
+            
+            if (currentDetailType === 'contest') {
+                displayContestRequests();
+            } else {
+                displayProblemRequests();
+            }
+            
+            alert('已拒绝申请');
+        }
+        
+        // 更新结果状态
+        function updateResultStatus(id, status) {
+            const index = results.findIndex(r => r.id == id);
+            if (index !== -1) {
+                results[index].status = status;
+                localStorage.setItem('results', JSON.stringify(results));
+            }
+        }
         
         // 查询结果
-        document.getElementById('search-btn').addEventListener('click', function() {
-            const email = document.getElementById('search-email').value;
+        function queryResults() {
+            const email = document.getElementById('query-email').value.trim();
             if (!email) {
-                showNotification('请输入邮箱地址', 'error');
+                alert('请输入邮箱');
                 return;
             }
             
-            const resultsContainer = document.getElementById('search-results');
-            resultsContainer.innerHTML = '';
+            const userResults = results.filter(r => r.email === email);
+            const container = document.getElementById('results-container');
+            container.innerHTML = '';
             
-            // 查询比赛申请
-            const contests = JSON.parse(localStorage.getItem('contests'));
-            const contestResults = contests.filter(c => c.email === email);
-            
-            // 查询单题申请
-            const problems = JSON.parse(localStorage.getItem('problems'));
-            const problemResults = problems.filter(p => p.email === email);
-            
-            if (contestResults.length === 0 && problemResults.length === 0) {
-                resultsContainer.innerHTML = '<p>没有找到与您的邮箱相关的申请记录。</p>';
+            if (userResults.length === 0) {
+                container.innerHTML = '<p>没有找到您的申请记录</p>';
                 return;
             }
             
-            // 显示比赛申请结果
-            contestResults.forEach(contest => {
-                const resultDiv = document.createElement('div');
-                resultDiv.className = 'result-item';
+            userResults.forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
                 
                 let statusClass = 'status-pending';
-                let statusText = '审核中';
+                if (result.status === 'approved') statusClass = 'status-approved';
+                else if (result.status === 'rejected') statusClass = 'status-rejected';
                 
-                if (contest.status === 'approved') {
-                    statusClass = 'status-approved';
-                    statusText = '已通过';
-                } else if (contest.status === 'rejected') {
-                    statusClass = 'status-rejected';
-                    statusText = '已拒绝';
-                }
-                
-                resultDiv.innerHTML = `
-                    <div class="result-title">
-                        <i class="fas fa-trophy"></i> ${contest.name}
-                        <span class="result-status status-badge ${statusClass}">${statusText}</span>
-                    </div>
-                    <p><strong>申请时间：</strong>${new Date(contest.submitted).toLocaleString()}</p>
-                    <p><strong>比赛时间：</strong>${new Date(contest.start).toLocaleString()} 至 ${new Date(contest.end).toLocaleString()}</p>
-                    <p><strong>题目数量：</strong>${contest.problemCount}</p>
+                resultItem.innerHTML = `
+                    <h3>${result.type === 'contest' ? '比赛申请' : '单题申请'}: ${result.name}</h3>
+                    <p>申请时间: ${formatDateTime(result.timestamp)}</p>
+                    <p>状态: <span class="result-status ${statusClass}">${
+                        result.status === 'pending' ? '审核中' : 
+                        result.status === 'approved' ? '已通过' : '已拒绝'
+                    }</span></p>
                 `;
-                
-                resultsContainer.appendChild(resultDiv);
-            });
-            
-            // 显示单题申请结果
-            problemResults.forEach(problem => {
-                const resultDiv = document.createElement('div');
-                resultDiv.className = 'result-item';
-                
-                let statusClass = 'status-pending';
-                let statusText = '审核中';
-                
-                if (problem.status === 'approved') {
-                    statusClass = 'status-approved';
-                    statusText = '已通过';
-                } else if (problem.status === 'rejected') {
-                    statusClass = 'status-rejected';
-                    statusText = '已拒绝';
-                }
-                
-                resultDiv.innerHTML = `
-                    <div class="result-title">
-                        <i class="fas fa-puzzle-piece"></i> ${problem.title}
-                        <span class="result-status status-badge ${statusClass}">${statusText}</span>
-                    </div>
-                    <p><strong>申请时间：</strong>${new Date(problem.submitted).toLocaleString()}</p>
-                    <p><strong>出题人：</strong>${problem.author}</p>
-                    <p><strong>难度：</strong>${problem.difficulty}</p>
-                `;
-                
-                resultsContainer.appendChild(resultDiv);
-            });
-        });
-        
-        // 管理员登录
-        document.getElementById('login-btn').addEventListener('click', function() {
-            const password = document.getElementById('admin-password').value;
-            
-            // 简单密码验证
-            if (password === 'admin123') {
-                document.getElementById('admin-login').style.display = 'none';
-                document.getElementById('admin-content').style.display = 'block';
-                loadAdminData();
-            } else {
-                showNotification('管理员密码错误', 'error');
-            }
-        });
-        
-        // 加载管理员数据
-        function loadAdminData() {
-            // 加载比赛申请
-            const contests = JSON.parse(localStorage.getItem('contests'));
-            const contestList = document.getElementById('contest-admin-list');
-            contestList.innerHTML = '';
-            
-            contests.forEach((contest, index) => {
-                const row = document.createElement('tr');
-                
-                let statusClass = 'status-pending';
-                let statusText = '审核中';
-                
-                if (contest.status === 'approved') {
-                    statusClass = 'status-approved';
-                    statusText = '已通过';
-                } else if (contest.status === 'rejected') {
-                    statusClass = 'status-rejected';
-                    statusText = '已拒绝';
-                }
-                
-                row.innerHTML = `
-                    <td>${contest.name}</td>
-                    <td>${contest.oj} (UID: ${contest.uid})</td>
-                    <td>${contest.email}</td>
-                    <td>${contest.problemCount}</td>
-                    <td>${new Date(contest.submitted).toLocaleDateString()}</td>
-                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                    <td>
-                        <button class="btn btn-primary view-contest" data-index="${index}">查看</button>
-                    </td>
-                `;
-                
-                contestList.appendChild(row);
-            });
-            
-            // 加载单题申请
-            const problems = JSON.parse(localStorage.getItem('problems'));
-            const problemList = document.getElementById('problem-admin-list');
-            problemList.innerHTML = '';
-            
-            problems.forEach((problem, index) => {
-                const row = document.createElement('tr');
-                
-                let statusClass = 'status-pending';
-                let statusText = '审核中';
-                
-                if (problem.status === 'approved') {
-                    statusClass = 'status-approved';
-                    statusText = '已通过';
-                } else if (problem.status === 'rejected') {
-                    statusClass = 'status-rejected';
-                    statusText = '已拒绝';
-                }
-                
-                row.innerHTML = `
-                    <td>${problem.title}</td>
-                    <td>${problem.author}</td>
-                    <td>${problem.email}</td>
-                    <td>${problem.difficulty}</td>
-                    <td>${new Date(problem.submitted).toLocaleDateString()}</td>
-                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                    <td>
-                        <button class="btn btn-primary view-problem" data-index="${index}">查看</button>
-                    </td>
-                `;
-                
-                problemList.appendChild(row);
-            });
-            
-            // 添加查看比赛详情事件
-            document.querySelectorAll('.view-contest').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = this.dataset.index;
-                    showContestDetail(index);
-                });
-            });
-            
-            // 添加查看单题详情事件
-            document.querySelectorAll('.view-problem').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = this.dataset.index;
-                    showProblemDetail(index);
-                });
+                container.appendChild(resultItem);
             });
         }
         
-        // 显示比赛申请详情
-        function showContestDetail(index) {
-            const contests = JSON.parse(localStorage.getItem('contests'));
-            const contest = contests[index];
-            
-            const detailDiv = document.getElementById('contest-detail');
-            detailDiv.style.display = 'block';
-            document.getElementById('contest-admin-list').style.display = 'none';
-            
-            let statusOptions = `
-                <option value="pending" ${contest.status === 'pending' ? 'selected' : ''}>审核中</option>
-                <option value="approved" ${contest.status === 'approved' ? 'selected' : ''}>通过</option>
-                <option value="rejected" ${contest.status === 'rejected' ? 'selected' : ''}>拒绝</option>
-            `;
-            
-            detailDiv.innerHTML = `
-                <h3><i class="fas fa-trophy"></i> 比赛申请详情</h3>
-                <div class="detail-view">
-                    <div class="detail-item">
-                        <div class="detail-label">比赛信息</div>
-                        <div class="detail-value">
-                            <p><strong>比赛名称：</strong>${contest.name}</p>
-                            <p><strong>比赛描述：</strong>${contest.description}</p>
-                            <p><strong>开始时间：</strong>${new Date(contest.start).toLocaleString()}</p>
-                            <p><strong>结束时间：</strong>${new Date(contest.end).toLocaleString()}</p>
-                            <p><strong>题目数量：</strong>${contest.problemCount}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <div class="detail-label">负责人信息</div>
-                        <div class="detail-value">
-                            <p><strong>OJ名称：</strong>${contest.oj}</p>
-                            <p><strong>UID：</strong>${contest.uid}</p>
-                            <p><strong>邮箱：</strong>${contest.email}</p>
-                            <p><strong>获奖经历：</strong>${contest.experience}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <div class="detail-label">题目列表</div>
-                        <div class="detail-value">
-                            ${contest.problems.map((p, i) => `
-                                <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
-                                    <p><strong>题目 #${i+1}：${p.title}</strong></p>
-                                    <p><strong>出题人：</strong>${p.author}</p>
-                                    <p><strong>难度：</strong>${p.difficulty}</p>
-                                    <div class="problem-description">
-                                        <strong>描述：</strong>
-                                        <div style="margin-top: 8px;">${p.description}</div>
-                                    </div>
-                                    <p><strong>数据包：</strong>${p.data}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <div class="detail-label">审核</div>
-                        <div class="detail-value">
-                            <div class="form-group">
-                                <label for="contest-status">审核状态</label>
-                                <select id="contest-status" class="form-control">
-                                    ${statusOptions}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="contest-comment">审核意见</label>
-                                <textarea id="contest-comment" class="form-control" rows="3">${contest.comment || ''}</textarea>
-                            </div>
-                            <div class="form-group" style="display: flex; gap: 10px;">
-                                <button class="btn btn-primary save-contest" data-index="${index}">保存</button>
-                                <button class="btn btn-danger delete-contest" data-index="${index}">删除</button>
-                                <button class="btn btn-warning back-to-list">返回列表</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // 添加保存事件
-            document.querySelector('.save-contest').addEventListener('click', function() {
-                const status = document.getElementById('contest-status').value;
-                const comment = document.getElementById('contest-comment').value;
-                
-                contests[index].status = status;
-                contests[index].comment = comment;
-                localStorage.setItem('contests', JSON.stringify(contests));
-                
-                showNotification('审核状态已更新');
-                loadAdminData();
-                detailDiv.style.display = 'none';
-                document.getElementById('contest-admin-list').style.display = 'table';
-            });
-            
-            // 添加删除事件
-            document.querySelector('.delete-contest').addEventListener('click', function() {
-                contests.splice(index, 1);
-                localStorage.setItem('contests', JSON.stringify(contests));
-                
-                showNotification('申请已删除');
-                detailDiv.style.display = 'none';
-                document.getElementById('contest-admin-list').style.display = 'table';
-                loadAdminData();
-            });
-            
-            // 添加返回事件
-            document.querySelector('.back-to-list').addEventListener('click', function() {
-                detailDiv.style.display = 'none';
-                document.getElementById('contest-admin-list').style.display = 'table';
-            });
+        // 清除查询结果
+        function clearResults() {
+            document.getElementById('results-container').innerHTML = '';
+            document.getElementById('query-email').value = '';
         }
         
-        // 显示单题申请详情
-        function showProblemDetail(index) {
-            const problems = JSON.parse(localStorage.getItem('problems'));
-            const problem = problems[index];
+        // 格式化日期时间
+        function formatDateTime(dateTimeStr) {
+            if (!dateTimeStr) return '';
             
-            const detailDiv = document.getElementById('problem-detail');
-            detailDiv.style.display = 'block';
-            document.getElementById('problem-admin-list').style.display = 'none';
+            const date = new Date(dateTimeStr);
+            if (isNaN(date.getTime())) return dateTimeStr;
             
-            let statusOptions = `
-                <option value="pending" ${problem.status === 'pending' ? 'selected' : ''}>审核中</option>
-                <option value="approved" ${problem.status === 'approved' ? 'selected' : ''}>通过</option>
-                <option value="rejected" ${problem.status === 'rejected' ? 'selected' : ''}>拒绝</option>
-            `;
-            
-            detailDiv.innerHTML = `
-                <h3><i class="fas fa-puzzle-piece"></i> 单题申请详情</h3>
-                <div class="detail-view">
-                    <div class="detail-item">
-                        <div class="detail-label">题目信息</div>
-                        <div class="detail-value">
-                            <p><strong>题目标题：</strong>${problem.title}</p>
-                            <p><strong>出题人：</strong>${problem.author}</p>
-                            <p><strong>难度：</strong>${problem.difficulty}</p>
-                            <div class="description-box">
-                                <strong>题目描述：</strong>
-                                <div style="margin-top: 8px;">${problem.description}</div>
-                            </div>
-                            <p><strong>数据包：</strong>${problem.data}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <div class="detail-label">负责人信息</div>
-                        <div class="detail-value">
-                            <p><strong>OJ名称：</strong>${problem.oj}</p>
-                            <p><strong>UID：</strong>${problem.uid}</p>
-                            <p><strong>邮箱：</strong>${problem.email}</p>
-                            <p><strong>获奖经历：</strong>${problem.experience}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <div class="detail-label">审核</div>
-                        <div class="detail-value">
-                            <div class="form-group">
-                                <label for="problem-status">审核状态</label>
-                                <select id="problem-status" class="form-control">
-                                    ${statusOptions}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="problem-comment">审核意见</label>
-                                <textarea id="problem-comment" class="form-control" rows="3">${problem.comment || ''}</textarea>
-                            </div>
-                            <div class="form-group" style="display: flex; gap: 10px;">
-                                <button class="btn btn-primary save-problem" data-index="${index}">保存</button>
-                                <button class="btn btn-danger delete-problem" data-index="${index}">删除</button>
-                                <button class="btn btn-warning back-to-list">返回列表</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // 添加保存事件
-            document.querySelector('.save-problem').addEventListener('click', function() {
-                const status = document.getElementById('problem-status').value;
-                const comment = document.getElementById('problem-comment').value;
-                
-                problems[index].status = status;
-                problems[index].comment = comment;
-                localStorage.setItem('problems', JSON.stringify(problems));
-                
-                showNotification('审核状态已更新');
-                loadAdminData();
-                detailDiv.style.display = 'none';
-                document.getElementById('problem-admin-list').style.display = 'table';
-            });
-            
-            // 添加删除事件
-            document.querySelector('.delete-problem').addEventListener('click', function() {
-                problems.splice(index, 1);
-                localStorage.setItem('problems', JSON.stringify(problems));
-                
-                showNotification('申请已删除');
-                detailDiv.style.display = 'none';
-                document.getElementById('problem-admin-list').style.display = 'table';
-                loadAdminData();
-            });
-            
-            // 添加返回事件
-            document.querySelector('.back-to-list').addEventListener('click', function() {
-                detailDiv.style.display = 'none';
-                document.getElementById('problem-admin-list').style.display = 'table';
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
             });
         }
-        
-        // 初始化页面
-        function initPage() {
-            // 默认显示比赛申请页面
-            document.getElementById('contest-application').classList.add('active');
-        }
-        
-        // 页面加载完成后初始化
-        window.addEventListener('DOMContentLoaded', initPage);
     </script>
 </body>
 </html>
