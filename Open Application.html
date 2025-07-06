@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HACKER交流会公开赛审核系统</title>
+    <!-- 引入 Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root {
             --primary-color: #3498db;
@@ -332,6 +335,13 @@
             cursor: pointer;
             margin-right: 10px;
         }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: var(--gray-color);
+        }
     </style>
 </head>
 <body>
@@ -469,15 +479,13 @@
             
             <div id="admin-contests" class="request-list">
                 <div id="contest-requests-container">
-                    <!-- 比赛申请列表会显示在这里 -->
-                    <p>暂无比赛申请</p>
+                    <p class="loading">加载中...</p>
                 </div>
             </div>
             
             <div id="admin-problems" class="request-list" style="display: none;">
                 <div id="problem-requests-container">
-                    <!-- 单题申请列表会显示在这里 -->
-                    <p>暂无单题申请</p>
+                    <p class="loading">加载中...</p>
                 </div>
             </div>
             
@@ -506,6 +514,21 @@
     </div>
 
     <script>
+        // 替换为你的Firebase配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyABC123XYZ456DEF789GHI012JKL345MNO",
+            authDomain: "your-project-id.firebaseapp.com",
+            databaseURL: "https://your-project-id.firebaseio.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abc123def456ghi789jkl"
+        };
+
+        // 初始化Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         // 存储数据
         let contestRequests = [];
         let problemRequests = [];
@@ -515,7 +538,8 @@
         
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function() {
-            loadAllData();
+            // 从Firebase加载数据
+            loadAllDataFromFirebase();
             updateProblemInputs();
             
             // 表单提交事件
@@ -530,47 +554,49 @@
             });
         });
 
-        // 加载所有数据
-        function loadAllData() {
-            contestRequests = JSON.parse(localStorage.getItem('contestRequests')) || [];
-            problemRequests = JSON.parse(localStorage.getItem('problemRequests')) || [];
-            results = JSON.parse(localStorage.getItem('results')) || [];
-            updateRequestCounts();
-            
-            // 如果管理员面板已显示，更新显示
-            if (document.getElementById('admin-panel').style.display === 'block') {
-                if (document.getElementById('admin-contests').style.display === 'block') {
+        // 从Firebase加载所有数据
+        function loadAllDataFromFirebase() {
+            // 监听比赛申请变化
+            database.ref('contestRequests').orderByChild('status').equalTo('pending').on('value', (snapshot) => {
+                contestRequests = [];
+                snapshot.forEach((childSnapshot) => {
+                    const request = childSnapshot.val();
+                    request.id = childSnapshot.key;
+                    contestRequests.push(request);
+                });
+                updateRequestCounts();
+                if (document.getElementById('admin-panel').style.display === 'block' && 
+                    document.getElementById('admin-contests').style.display === 'block') {
                     displayContestRequests();
-                } else {
+                }
+            });
+
+            // 监听单题申请变化
+            database.ref('problemRequests').orderByChild('status').equalTo('pending').on('value', (snapshot) => {
+                problemRequests = [];
+                snapshot.forEach((childSnapshot) => {
+                    const request = childSnapshot.val();
+                    request.id = childSnapshot.key;
+                    problemRequests.push(request);
+                });
+                updateRequestCounts();
+                if (document.getElementById('admin-panel').style.display === 'block' && 
+                    document.getElementById('admin-problems').style.display === 'block') {
                     displayProblemRequests();
                 }
-            }
+            });
+
+            // 监听结果变化
+            database.ref('results').on('value', (snapshot) => {
+                results = [];
+                snapshot.forEach((childSnapshot) => {
+                    const result = childSnapshot.val();
+                    result.id = childSnapshot.key;
+                    results.push(result);
+                });
+            });
         }
 
-        // 保存所有数据
-        function saveAllData() {
-            localStorage.setItem('contestRequests', JSON.stringify(contestRequests));
-            localStorage.setItem('problemRequests', JSON.stringify(problemRequests));
-            localStorage.setItem('results', JSON.stringify(results));
-            loadAllData(); // 重新加载确保数据同步
-        }
-
-        // 切换标签页
-        function openTab(evt, tabName) {
-            const tabContents = document.getElementsByClassName('tab-content');
-            for (let i = 0; i < tabContents.length; i++) {
-                tabContents[i].classList.remove('active');
-            }
-            
-            const tabs = document.getElementsByClassName('tab');
-            for (let i = 0; i < tabs.length; i++) {
-                tabs[i].classList.remove('active');
-            }
-            
-            document.getElementById(tabName).classList.add('active');
-            evt.currentTarget.classList.add('active');
-        }
-        
         // 更新比赛题目输入框
         function updateProblemInputs() {
             const count = parseInt(document.getElementById('contest-problem-count').value);
@@ -627,7 +653,7 @@
             const info = document.getElementById('contest-info').value;
             const start = document.getElementById('contest-start').value;
             const end = document.getElementById('contest-end').value;
-            const count = parseInt(document.getElementById('contest-problem-count').value);
+            const count = parseInt(document.getElementById('contest-problem-count').value;
             
             const problems = [];
             for (let i = 1; i <= count; i++) {
@@ -641,7 +667,6 @@
             }
             
             const request = {
-                id: Date.now(),
                 type: 'contest',
                 oj,
                 uid,
@@ -656,24 +681,32 @@
                 timestamp: new Date().toISOString()
             };
             
-            contestRequests.push(request);
-            
-            // 添加到结果列表
-            results.push({
-                id: request.id,
-                type: 'contest',
-                name: name,
-                email: email,
-                status: 'pending',
-                timestamp: request.timestamp
-            });
-            
-            saveAllData();
-            alert('比赛申请提交成功！');
-            document.getElementById('contest-form').reset();
-            updateProblemInputs();
+            // 保存到Firebase
+            const newRequestRef = database.ref('contestRequests').push();
+            newRequestRef.set(request)
+                .then(() => {
+                    // 添加到结果列表
+                    const result = {
+                        type: 'contest',
+                        name: name,
+                        email: email,
+                        status: 'pending',
+                        timestamp: request.timestamp,
+                        requestId: newRequestRef.key
+                    };
+                    return database.ref('results').push(result);
+                })
+                .then(() => {
+                    alert('比赛申请提交成功！');
+                    document.getElementById('contest-form').reset();
+                    updateProblemInputs();
+                })
+                .catch((error) => {
+                    console.error('提交失败:', error);
+                    alert('提交失败，请重试');
+                });
         }
-        
+
         // 提交单题申请
         function submitProblem() {
             const oj = document.getElementById('problem-oj').value;
@@ -687,7 +720,6 @@
             const data = document.getElementById('problem-data').files[0]?.name || '未上传';
             
             const request = {
-                id: Date.now(),
                 type: 'problem',
                 oj,
                 uid,
@@ -702,30 +734,35 @@
                 timestamp: new Date().toISOString()
             };
             
-            problemRequests.push(request);
-            
-            // 添加到结果列表
-            results.push({
-                id: request.id,
-                type: 'problem',
-                name: title,
-                email: email,
-                status: 'pending',
-                timestamp: request.timestamp
-            });
-            
-            saveAllData();
-            alert('单题申请提交成功！');
-            document.getElementById('problem-form').reset();
+            // 保存到Firebase
+            const newRequestRef = database.ref('problemRequests').push();
+            newRequestRef.set(request)
+                .then(() => {
+                    // 添加到结果列表
+                    const result = {
+                        type: 'problem',
+                        name: title,
+                        email: email,
+                        status: 'pending',
+                        timestamp: request.timestamp,
+                        requestId: newRequestRef.key
+                    };
+                    return database.ref('results').push(result);
+                })
+                .then(() => {
+                    alert('单题申请提交成功！');
+                    document.getElementById('problem-form').reset();
+                })
+                .catch((error) => {
+                    console.error('提交失败:', error);
+                    alert('提交失败，请重试');
+                });
         }
-        
+
         // 更新申请数量显示
         function updateRequestCounts() {
-            const pendingContests = contestRequests.filter(r => r.status === 'pending').length;
-            const pendingProblems = problemRequests.filter(r => r.status === 'pending').length;
-            
-            document.getElementById('contest-count').textContent = pendingContests;
-            document.getElementById('problem-count').textContent = pendingProblems;
+            document.getElementById('contest-count').textContent = contestRequests.length;
+            document.getElementById('problem-count').textContent = problemRequests.length;
         }
         
         // 显示秘密管理员登录框
@@ -745,7 +782,6 @@
             if (password === 'admin123') {
                 document.getElementById('admin-panel').style.display = 'block';
                 hideSecretAdminLogin();
-                loadAllData();
                 displayContestRequests();
             } else {
                 alert('密码错误！');
@@ -777,16 +813,15 @@
         // 显示比赛申请列表
         function displayContestRequests() {
             const container = document.getElementById('contest-requests-container');
-            const pendingRequests = contestRequests.filter(r => r.status === 'pending');
             
-            if (pendingRequests.length === 0) {
+            if (contestRequests.length === 0) {
                 container.innerHTML = '<p>暂无比赛申请</p>';
                 return;
             }
             
             container.innerHTML = '';
             
-            pendingRequests.forEach(request => {
+            contestRequests.forEach(request => {
                 const requestItem = document.createElement('div');
                 requestItem.className = 'request-item';
                 requestItem.innerHTML = `
@@ -807,16 +842,15 @@
         // 显示单题申请列表
         function displayProblemRequests() {
             const container = document.getElementById('problem-requests-container');
-            const pendingRequests = problemRequests.filter(r => r.status === 'pending');
             
-            if (pendingRequests.length === 0) {
+            if (problemRequests.length === 0) {
                 container.innerHTML = '<p>暂无单题申请</p>';
                 return;
             }
             
             container.innerHTML = '';
             
-            pendingRequests.forEach(request => {
+            problemRequests.forEach(request => {
                 const requestItem = document.createElement('div');
                 requestItem.className = 'request-item';
                 requestItem.innerHTML = `
@@ -843,133 +877,143 @@
             document.getElementById('admin-detail').style.display = 'block';
             
             const detailContent = document.getElementById('detail-content');
+            detailContent.innerHTML = '<p class="loading">加载中...</p>';
             
-            if (type === 'contest') {
-                const request = contestRequests.find(r => r.id == id);
-                if (!request) return;
+            const ref = type === 'contest' ? 
+                database.ref('contestRequests/' + id) : 
+                database.ref('problemRequests/' + id);
+            
+            ref.once('value').then((snapshot) => {
+                const request = snapshot.val();
+                if (!request) {
+                    detailContent.innerHTML = '<p>申请不存在或已被处理</p>';
+                    return;
+                }
                 
-                let problemsHtml = '';
-                request.problems.forEach((problem, index) => {
-                    problemsHtml += `
-                        <div class="problem-container">
-                            <div class="problem-header">
-                                <div class="problem-title">题目 ${index + 1}</div>
+                if (type === 'contest') {
+                    let problemsHtml = '';
+                    request.problems.forEach((problem, index) => {
+                        problemsHtml += `
+                            <div class="problem-container">
+                                <div class="problem-header">
+                                    <div class="problem-title">题目 ${index + 1}</div>
+                                </div>
+                                <div class="form-group">
+                                    <label>题目标题</label>
+                                    <p>${problem.title}</p>
+                                </div>
+                                <div class="form-group">
+                                    <label>出题人</label>
+                                    <p>${problem.author}</p>
+                                </div>
+                                <div class="form-group">
+                                    <label>难度</label>
+                                    <p>${problem.difficulty}</p>
+                                </div>
+                                <div class="form-group">
+                                    <label>题目描述</label>
+                                    <pre>${problem.description}</pre>
+                                </div>
+                                <div class="form-group">
+                                    <label>数据包</label>
+                                    <p>${problem.data}</p>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>题目标题</label>
-                                <p>${problem.title}</p>
-                            </div>
-                            <div class="form-group">
-                                <label>出题人</label>
-                                <p>${problem.author}</p>
-                            </div>
-                            <div class="form-group">
-                                <label>难度</label>
-                                <p>${problem.difficulty}</p>
-                            </div>
-                            <div class="form-group">
-                                <label>题目描述</label>
-                                <pre>${problem.description}</pre>
-                            </div>
-                            <div class="form-group">
-                                <label>数据包</label>
-                                <p>${problem.data}</p>
-                            </div>
+                        `;
+                    });
+                    
+                    detailContent.innerHTML = `
+                        <h3>负责人信息</h3>
+                        <div class="form-group">
+                            <label>OJ名字</label>
+                            <p>${request.oj}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>UID</label>
+                            <p>${request.uid}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>邮箱</label>
+                            <p>${request.email}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>获奖经历</label>
+                            <pre>${request.awards}</pre>
+                        </div>
+                        
+                        <h3>比赛信息</h3>
+                        <div class="form-group">
+                            <label>比赛昵称</label>
+                            <p>${request.name}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>比赛信息</label>
+                            <pre>${request.info}</pre>
+                        </div>
+                        <div class="form-group">
+                            <label>开始时间</label>
+                            <p>${formatDateTime(request.start)}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>结束时间</label>
+                            <p>${formatDateTime(request.end)}</p>
+                        </div>
+                        
+                        <h3>题目信息</h3>
+                        <div class="form-group">
+                            <label>题目数量</label>
+                            <p>${request.problems.length}</p>
+                        </div>
+                        
+                        ${problemsHtml}
+                    `;
+                } else if (type === 'problem') {
+                    detailContent.innerHTML = `
+                        <h3>负责人信息</h3>
+                        <div class="form-group">
+                            <label>OJ名字</label>
+                            <p>${request.oj}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>UID</label>
+                            <p>${request.uid}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>邮箱</label>
+                            <p>${request.email}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>获奖经历</label>
+                            <pre>${request.awards}</pre>
+                        </div>
+                        
+                        <h3>题目信息</h3>
+                        <div class="form-group">
+                            <label>题目标题</label>
+                            <p>${request.title}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>出题人</label>
+                            <p>${request.author}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>难度</label>
+                            <p>${request.difficulty}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>题目描述</label>
+                            <pre>${request.description}</pre>
+                        </div>
+                        <div class="form-group">
+                            <label>数据包</label>
+                            <p>${request.data}</p>
                         </div>
                     `;
-                });
-                
-                detailContent.innerHTML = `
-                    <h3>负责人信息</h3>
-                    <div class="form-group">
-                        <label>OJ名字</label>
-                        <p>${request.oj}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>UID</label>
-                        <p>${request.uid}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>邮箱</label>
-                        <p>${request.email}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>获奖经历</label>
-                        <pre>${request.awards}</pre>
-                    </div>
-                    
-                    <h3>比赛信息</h3>
-                    <div class="form-group">
-                        <label>比赛昵称</label>
-                        <p>${request.name}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>比赛信息</label>
-                        <pre>${request.info}</pre>
-                    </div>
-                    <div class="form-group">
-                        <label>开始时间</label>
-                        <p>${formatDateTime(request.start)}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>结束时间</label>
-                        <p>${formatDateTime(request.end)}</p>
-                    </div>
-                    
-                    <h3>题目信息</h3>
-                    <div class="form-group">
-                        <label>题目数量</label>
-                        <p>${request.problems.length}</p>
-                    </div>
-                    
-                    ${problemsHtml}
-                `;
-            } else if (type === 'problem') {
-                const request = problemRequests.find(r => r.id == id);
-                if (!request) return;
-                
-                detailContent.innerHTML = `
-                    <h3>负责人信息</h3>
-                    <div class="form-group">
-                        <label>OJ名字</label>
-                        <p>${request.oj}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>UID</label>
-                        <p>${request.uid}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>邮箱</label>
-                        <p>${request.email}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>获奖经历</label>
-                        <pre>${request.awards}</pre>
-                    </div>
-                    
-                    <h3>题目信息</h3>
-                    <div class="form-group">
-                        <label>题目标题</label>
-                        <p>${request.title}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>出题人</label>
-                        <p>${request.author}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>难度</label>
-                        <p>${request.difficulty}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>题目描述</label>
-                        <pre>${request.description}</pre>
-                    </div>
-                    <div class="form-group">
-                        <label>数据包</label>
-                        <p>${request.data}</p>
-                    </div>
-                `;
-            }
+                }
+            }).catch((error) => {
+                console.error('加载详情失败:', error);
+                detailContent.innerHTML = '<p>加载详情失败，请重试</p>';
+            });
         }
         
         // 返回列表
@@ -980,66 +1024,60 @@
         
         // 通过申请
         function approveRequest() {
-            if (currentDetailType === 'contest') {
-                const index = contestRequests.findIndex(r => r.id == currentDetailId);
-                if (index !== -1) {
-                    contestRequests[index].status = 'approved';
-                    
-                    // 更新结果状态
-                    const resultIndex = results.findIndex(r => r.id == currentDetailId);
-                    if (resultIndex !== -1) {
-                        results[resultIndex].status = 'approved';
-                    }
-                }
-            } else if (currentDetailType === 'problem') {
-                const index = problemRequests.findIndex(r => r.id == currentDetailId);
-                if (index !== -1) {
-                    problemRequests[index].status = 'approved';
-                    
-                    // 更新结果状态
-                    const resultIndex = results.findIndex(r => r.id == currentDetailId);
-                    if (resultIndex !== -1) {
-                        results[resultIndex].status = 'approved';
-                    }
-                }
-            }
+            const ref = currentDetailType === 'contest' ? 
+                database.ref('contestRequests/' + currentDetailId) : 
+                database.ref('problemRequests/' + currentDetailId);
             
-            saveAllData();
-            backToList();
-            alert('已通过申请');
+            ref.update({ status: 'approved' })
+                .then(() => {
+                    // 更新结果状态
+                    return database.ref('results').orderByChild('requestId').equalTo(currentDetailId).once('value')
+                        .then((snapshot) => {
+                            const updates = {};
+                            snapshot.forEach((childSnapshot) => {
+                                updates['results/' + childSnapshot.key + '/status'] = 'approved';
+                            });
+                            return database.ref().update(updates);
+                        });
+                })
+                .then(() => {
+                    backToList();
+                    alert('已通过申请');
+                })
+                .catch((error) => {
+                    console.error('操作失败:', error);
+                    alert('操作失败，请重试');
+                });
         }
-        
+
         // 拒绝申请
         function rejectRequest() {
-            if (currentDetailType === 'contest') {
-                const index = contestRequests.findIndex(r => r.id == currentDetailId);
-                if (index !== -1) {
-                    contestRequests[index].status = 'rejected';
-                    
-                    // 更新结果状态
-                    const resultIndex = results.findIndex(r => r.id == currentDetailId);
-                    if (resultIndex !== -1) {
-                        results[resultIndex].status = 'rejected';
-                    }
-                }
-            } else if (currentDetailType === 'problem') {
-                const index = problemRequests.findIndex(r => r.id == currentDetailId);
-                if (index !== -1) {
-                    problemRequests[index].status = 'rejected';
-                    
-                    // 更新结果状态
-                    const resultIndex = results.findIndex(r => r.id == currentDetailId);
-                    if (resultIndex !== -1) {
-                        results[resultIndex].status = 'rejected';
-                    }
-                }
-            }
+            const ref = currentDetailType === 'contest' ? 
+                database.ref('contestRequests/' + currentDetailId) : 
+                database.ref('problemRequests/' + currentDetailId);
             
-            saveAllData();
-            backToList();
-            alert('已拒绝申请');
+            ref.update({ status: 'rejected' })
+                .then(() => {
+                    // 更新结果状态
+                    return database.ref('results').orderByChild('requestId').equalTo(currentDetailId).once('value')
+                        .then((snapshot) => {
+                            const updates = {};
+                            snapshot.forEach((childSnapshot) => {
+                                updates['results/' + childSnapshot.key + '/status'] = 'rejected';
+                            });
+                            return database.ref().update(updates);
+                        });
+                })
+                .then(() => {
+                    backToList();
+                    alert('已拒绝申请');
+                })
+                .catch((error) => {
+                    console.error('操作失败:', error);
+                    alert('操作失败，请重试');
+                });
         }
-        
+
         // 查询结果
         function queryResults() {
             const email = document.getElementById('query-email').value.trim();
@@ -1048,33 +1086,42 @@
                 return;
             }
             
-            const userResults = results.filter(r => r.email === email);
             const container = document.getElementById('results-container');
-            container.innerHTML = '';
+            container.innerHTML = '<p class="loading">查询中...</p>';
             
-            if (userResults.length === 0) {
-                container.innerHTML = '<p>没有找到您的申请记录</p>';
-                return;
-            }
-            
-            userResults.forEach(result => {
-                const resultItem = document.createElement('div');
-                resultItem.className = 'result-item';
-                
-                let statusClass = 'status-pending';
-                if (result.status === 'approved') statusClass = 'status-approved';
-                else if (result.status === 'rejected') statusClass = 'status-rejected';
-                
-                resultItem.innerHTML = `
-                    <h3>${result.type === 'contest' ? '比赛申请' : '单题申请'}: ${result.name}</h3>
-                    <p>申请时间: ${formatDateTime(result.timestamp)}</p>
-                    <p>状态: <span class="result-status ${statusClass}">${
-                        result.status === 'pending' ? '审核中' : 
-                        result.status === 'approved' ? '已通过' : '已拒绝'
-                    }</span></p>
-                `;
-                container.appendChild(resultItem);
-            });
+            database.ref('results').orderByChild('email').equalTo(email).once('value')
+                .then((snapshot) => {
+                    container.innerHTML = '';
+                    
+                    if (!snapshot.exists()) {
+                        container.innerHTML = '<p>没有找到您的申请记录</p>';
+                        return;
+                    }
+                    
+                    snapshot.forEach((childSnapshot) => {
+                        const result = childSnapshot.val();
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'result-item';
+                        
+                        let statusClass = 'status-pending';
+                        if (result.status === 'approved') statusClass = 'status-approved';
+                        else if (result.status === 'rejected') statusClass = 'status-rejected';
+                        
+                        resultItem.innerHTML = `
+                            <h3>${result.type === 'contest' ? '比赛申请' : '单题申请'}: ${result.name}</h3>
+                            <p>申请时间: ${formatDateTime(result.timestamp)}</p>
+                            <p>状态: <span class="result-status ${statusClass}">${
+                                result.status === 'pending' ? '审核中' : 
+                                result.status === 'approved' ? '已通过' : '已拒绝'
+                            }</span></p>
+                        `;
+                        container.appendChild(resultItem);
+                    });
+                })
+                .catch((error) => {
+                    console.error('查询失败:', error);
+                    container.innerHTML = '<p>查询失败，请重试</p>';
+                });
         }
         
         // 清除查询结果
@@ -1099,6 +1146,22 @@
                 second: '2-digit',
                 hour12: false
             });
+        }
+
+        // 切换标签页
+        function openTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            const tabs = document.getElementsByClassName('tab');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
         }
     </script>
 </body>
