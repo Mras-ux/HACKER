@@ -342,6 +342,12 @@
             font-size: 18px;
             color: var(--gray-color);
         }
+        
+        .error-message {
+            color: var(--danger-color);
+            margin-top: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -401,6 +407,7 @@
                 </div>
                 
                 <button type="submit" class="btn">提交申请</button>
+                <div id="contest-form-error" class="error-message"></div>
             </form>
         </div>
         
@@ -449,6 +456,7 @@
                 </div>
                 
                 <button type="submit" class="btn">提交申请</button>
+                <div id="problem-form-error" class="error-message"></div>
             </form>
         </div>
         
@@ -514,7 +522,7 @@
     </div>
 
     <script>
-        // 替换为你的Firebase配置
+        // Firebase配置 - 替换为你自己的配置
         const firebaseConfig = {
             apiKey: "AIzaSyABC123XYZ456DEF789GHI012JKL345MNO",
             authDomain: "your-project-id.firebaseapp.com",
@@ -645,6 +653,9 @@
         
         // 提交比赛申请
         function submitContest() {
+            const errorElement = document.getElementById('contest-form-error');
+            errorElement.textContent = '';
+            
             const oj = document.getElementById('contest-oj').value;
             const uid = document.getElementById('contest-uid').value;
             const email = document.getElementById('contest-email').value;
@@ -653,16 +664,33 @@
             const info = document.getElementById('contest-info').value;
             const start = document.getElementById('contest-start').value;
             const end = document.getElementById('contest-end').value;
-            const count = parseInt(document.getElementById('contest-problem-count').value;
+            const count = parseInt(document.getElementById('contest-problem-count').value);
+            
+            // 验证数据
+            if (!oj || !uid || !email || !awards || !name || !info || !start || !end || count < 1) {
+                errorElement.textContent = '请填写所有必填字段';
+                return;
+            }
             
             const problems = [];
             for (let i = 1; i <= count; i++) {
+                const title = document.getElementById(`contest-problem-title-${i}`).value;
+                const author = document.getElementById(`contest-problem-author-${i}`).value;
+                const difficulty = document.getElementById(`contest-problem-difficulty-${i}`).value;
+                const description = document.getElementById(`contest-problem-description-${i}`).value;
+                const data = document.getElementById(`contest-problem-data-${i}`).files[0]?.name || '未上传';
+                
+                if (!title || !author || !difficulty || !description) {
+                    errorElement.textContent = `请填写题目 ${i} 的所有信息`;
+                    return;
+                }
+                
                 problems.push({
-                    title: document.getElementById(`contest-problem-title-${i}`).value,
-                    author: document.getElementById(`contest-problem-author-${i}`).value,
-                    difficulty: document.getElementById(`contest-problem-difficulty-${i}`).value,
-                    description: document.getElementById(`contest-problem-description-${i}`).value,
-                    data: document.getElementById(`contest-problem-data-${i}`).files[0]?.name || '未上传'
+                    title,
+                    author,
+                    difficulty,
+                    description,
+                    data
                 });
             }
             
@@ -680,6 +708,12 @@
                 status: 'pending',
                 timestamp: new Date().toISOString()
             };
+            
+            // 显示加载状态
+            const submitBtn = document.querySelector('#contest-form button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
             
             // 保存到Firebase
             const newRequestRef = database.ref('contestRequests').push();
@@ -703,12 +737,19 @@
                 })
                 .catch((error) => {
                     console.error('提交失败:', error);
-                    alert('提交失败，请重试');
+                    errorElement.textContent = '提交失败，请重试';
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
                 });
         }
 
         // 提交单题申请
         function submitProblem() {
+            const errorElement = document.getElementById('problem-form-error');
+            errorElement.textContent = '';
+            
             const oj = document.getElementById('problem-oj').value;
             const uid = document.getElementById('problem-uid').value;
             const email = document.getElementById('problem-email').value;
@@ -718,6 +759,12 @@
             const difficulty = document.getElementById('problem-difficulty').value;
             const description = document.getElementById('problem-description').value;
             const data = document.getElementById('problem-data').files[0]?.name || '未上传';
+            
+            // 验证数据
+            if (!oj || !uid || !email || !awards || !title || !author || !difficulty || !description) {
+                errorElement.textContent = '请填写所有必填字段';
+                return;
+            }
             
             const request = {
                 type: 'problem',
@@ -733,6 +780,12 @@
                 status: 'pending',
                 timestamp: new Date().toISOString()
             };
+            
+            // 显示加载状态
+            const submitBtn = document.querySelector('#problem-form button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
             
             // 保存到Firebase
             const newRequestRef = database.ref('problemRequests').push();
@@ -755,7 +808,11 @@
                 })
                 .catch((error) => {
                     console.error('提交失败:', error);
-                    alert('提交失败，请重试');
+                    errorElement.textContent = '提交失败，请重试';
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
                 });
         }
 
@@ -1012,7 +1069,7 @@
                 }
             }).catch((error) => {
                 console.error('加载详情失败:', error);
-                detailContent.innerHTML = '<p>加载详情失败，请重试</p>';
+                detailContent.innerHTML = '<p class="error-message">加载详情失败，请重试</p>';
             });
         }
         
@@ -1027,6 +1084,15 @@
             const ref = currentDetailType === 'contest' ? 
                 database.ref('contestRequests/' + currentDetailId) : 
                 database.ref('problemRequests/' + currentDetailId);
+            
+            const approveBtn = document.querySelector('#admin-detail .btn-secondary');
+            const rejectBtn = document.querySelector('#admin-detail .btn-danger');
+            const originalApproveText = approveBtn.textContent;
+            const originalRejectText = rejectBtn.textContent;
+            
+            approveBtn.disabled = true;
+            rejectBtn.disabled = true;
+            approveBtn.textContent = '处理中...';
             
             ref.update({ status: 'approved' })
                 .then(() => {
@@ -1047,6 +1113,12 @@
                 .catch((error) => {
                     console.error('操作失败:', error);
                     alert('操作失败，请重试');
+                })
+                .finally(() => {
+                    approveBtn.disabled = false;
+                    rejectBtn.disabled = false;
+                    approveBtn.textContent = originalApproveText;
+                    rejectBtn.textContent = originalRejectText;
                 });
         }
 
@@ -1055,6 +1127,15 @@
             const ref = currentDetailType === 'contest' ? 
                 database.ref('contestRequests/' + currentDetailId) : 
                 database.ref('problemRequests/' + currentDetailId);
+            
+            const approveBtn = document.querySelector('#admin-detail .btn-secondary');
+            const rejectBtn = document.querySelector('#admin-detail .btn-danger');
+            const originalApproveText = approveBtn.textContent;
+            const originalRejectText = rejectBtn.textContent;
+            
+            approveBtn.disabled = true;
+            rejectBtn.disabled = true;
+            rejectBtn.textContent = '处理中...';
             
             ref.update({ status: 'rejected' })
                 .then(() => {
@@ -1075,6 +1156,12 @@
                 .catch((error) => {
                     console.error('操作失败:', error);
                     alert('操作失败，请重试');
+                })
+                .finally(() => {
+                    approveBtn.disabled = false;
+                    rejectBtn.disabled = false;
+                    approveBtn.textContent = originalApproveText;
+                    rejectBtn.textContent = originalRejectText;
                 });
         }
 
@@ -1089,6 +1176,11 @@
             const container = document.getElementById('results-container');
             container.innerHTML = '<p class="loading">查询中...</p>';
             
+            const queryBtn = document.querySelector('#query-result .btn');
+            const originalText = queryBtn.textContent;
+            queryBtn.disabled = true;
+            queryBtn.textContent = '查询中...';
+            
             database.ref('results').orderByChild('email').equalTo(email).once('value')
                 .then((snapshot) => {
                     container.innerHTML = '';
@@ -1098,8 +1190,11 @@
                         return;
                     }
                     
+                    let hasResults = false;
                     snapshot.forEach((childSnapshot) => {
                         const result = childSnapshot.val();
+                        hasResults = true;
+                        
                         const resultItem = document.createElement('div');
                         resultItem.className = 'result-item';
                         
@@ -1117,10 +1212,18 @@
                         `;
                         container.appendChild(resultItem);
                     });
+                    
+                    if (!hasResults) {
+                        container.innerHTML = '<p>没有找到您的申请记录</p>';
+                    }
                 })
                 .catch((error) => {
                     console.error('查询失败:', error);
-                    container.innerHTML = '<p>查询失败，请重试</p>';
+                    container.innerHTML = '<p class="error-message">查询失败，请重试</p>';
+                })
+                .finally(() => {
+                    queryBtn.disabled = false;
+                    queryBtn.textContent = originalText;
                 });
         }
         
